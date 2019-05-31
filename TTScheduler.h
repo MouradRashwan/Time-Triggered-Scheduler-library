@@ -8,6 +8,13 @@
 #ifndef TTSCHEDULER_H_
 #define TTSCHEDULER_H_
 
+typedef struct Task
+{
+    bool bEnabled;
+    uint32_t ui32PeriodInMillis;
+    void (*pfnTaskFun)(void);
+} Task_t;
+
 void TTScheduler_initStatic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
 
 void TTScheduler_initDynamic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
