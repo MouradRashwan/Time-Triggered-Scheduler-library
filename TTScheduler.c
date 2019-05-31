@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "TTScheduler_driver.h"
+#include "TTScheduler.h"
 
 static uint32_t g_ui32Ticks = 0;
 static uint32_t g_ui32TickPeriod = 0;
