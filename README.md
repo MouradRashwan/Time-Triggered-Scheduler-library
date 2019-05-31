@@ -1,2 +1,2 @@
 # TTScheduler-library
-TTScheduler is a Time Triggered Scheduler for Hard RealTime Embedded Systems.
+TTScheduler is a Time Triggered Scheduler for Hard Realtime Embedded Systems.
