@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "TimerTick_driver.h"
+
 #include "TTScheduler.h"
 
 static uint32_t g_ui32Ticks = 0;
