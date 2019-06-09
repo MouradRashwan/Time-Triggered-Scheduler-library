@@ -10,20 +10,19 @@
 
 typedef struct Task
 {
-    bool bEnabled;
+    uint32_t ui32ID;
     uint32_t ui32PeriodInMillis;
     void (*pfnTaskFun)(void);
+    bool bEnabled;
 } Task_t;
 
-void TTScheduler_initStatic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
-
-void TTScheduler_initDynamic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
+void TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
 
 void TTScheduler_start(void);
 
-void TTScheduler_resumeTask(Task_t *ptTask);
+bool TTScheduler_resumeTask(uint32_t ui32ID);
 
-void TTScheduler_suspendTask(Task_t *ptTask);
+bool TTScheduler_suspendTask(uint32_t ui32ID);
 
 uint32_t TTScheduler_getTicks(void);
 

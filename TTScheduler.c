@@ -9,46 +9,48 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "TimerTick_driver.h"
+#include "TimerTick_driver/TimerTick_driver.h"
 
 #include "TTScheduler.h"
 
-static uint32_t g_ui32Ticks = 0;
-static uint32_t g_ui32TickPeriod = 0;
-static uint32_t g_ui32CyclePeriod = 0;
 static Task_t *g_ptTaskArray = NULL;
 static uint32_t g_ui32NumOfTasks = 0;
+static uint32_t g_ui32TicksInMillis = 0;
+static uint32_t g_ui32TickPeriodInMillis = 0;
+static uint32_t g_ui32CyclePeriodInMillis = 0;
 
 static void Tick_ISR(void)
 {
     uint32_t i;
 
-    g_ui32Ticks += g_ui32TickPeriod;
+    g_ui32TicksInMillis += g_ui32TickPeriodInMillis;
 
     for (i = 0; i < g_ui32NumOfTasks; i++)
     {
-        if (((g_ui32Ticks % g_ptTaskArray[i].ui32PeriodInMillis) == 0)
+        if (((g_ui32TicksInMillis % g_ptTaskArray[i].ui32PeriodInMillis) == 0)
                 && g_ptTaskArray[i].bEnabled == 1)
         {
             g_ptTaskArray[i].pfnTaskFun();
         }
     }
 
-    if (g_ui32Ticks == g_ui32CyclePeriod)
+    if (g_ui32TicksInMillis == g_ui32CyclePeriodInMillis)
     {
-        g_ui32Ticks = 0;
+        g_ui32TicksInMillis = 0;
     }
 }
 
-void TTScheduler_initStatic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
+void TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
 {
-    uint32_t i, j, ui32Max = 0, ui32Min = 0xFFFFFFFFU;
+    uint32_t i, j, ui32Max = 0, ui32Min = UINT32_MAX;
 
-    g_ptTaskArray = ptTaskArray;
     g_ui32NumOfTasks = ui32NumOfTasks;
+    g_ptTaskArray = ptTaskArray;
 
     for (i = 0; i < g_ui32NumOfTasks; i++)
     {
+        g_ptTaskArray[i].bEnabled = true;
+
         if (g_ptTaskArray[i].ui32PeriodInMillis < ui32Min)
         {
             ui32Min = g_ptTaskArray[i].ui32PeriodInMillis;
@@ -70,12 +72,12 @@ void TTScheduler_initStatic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
         }
         if (j == g_ui32NumOfTasks) /* when all tasks periods are divided by (i) (period / i) */
         {
-            g_ui32TickPeriod = i;
+            g_ui32TickPeriodInMillis = i;
             break;
         }
     }
 
-    for (i = ui32Max; i < 0xFFFFFFFFU; i++)
+    for (i = ui32Max; i < UINT32_MAX; i++)
     {
         for (j = 0; j < g_ui32NumOfTasks; j++)
         {
@@ -86,45 +88,82 @@ void TTScheduler_initStatic(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
         }
         if (j == g_ui32NumOfTasks) /* when (i) is divided by all tasks periods (i / period) */
         {
-            g_ui32CyclePeriod = i;
+            g_ui32CyclePeriodInMillis = i;
             break;
         }
     }
 
-    TimerTick_init(g_ui32TickPeriod, Tick_ISR);
+    TimerTick_init(g_ui32TickPeriodInMillis, Tick_ISR);
 }
 
 void TTScheduler_start(void)
 {
     TimerTick_start();
+
     while (1)
     {
 
     }
 }
 
-void TTScheduler_resumeTask(Task_t *ptTask)
+bool TTScheduler_resumeTask(uint32_t ui32ID)
 {
-    ptTask->bEnabled = 1;
+    uint32_t i;
+    bool bTaskFound;
+
+    for (i = 0; i < g_ui32NumOfTasks; i++)
+    {
+        if (g_ptTaskArray[i].ui32ID == ui32ID)
+        {
+            g_ptTaskArray[i].bEnabled = true;
+            bTaskFound = true;
+            break;
+        }
+    }
+
+    if (i == g_ui32NumOfTasks)
+    {
+        bTaskFound = false;
+    }
+
+    return bTaskFound;
 }
 
-void TTScheduler_suspendTask(Task_t *ptTask)
+bool TTScheduler_suspendTask(uint32_t ui32ID)
 {
-    ptTask->bEnabled = 0;
+    uint32_t i;
+    bool bTaskFound;
+
+    for (i = 0; i < g_ui32NumOfTasks; i++)
+    {
+        if (g_ptTaskArray[i].ui32ID == ui32ID)
+        {
+            g_ptTaskArray[i].bEnabled = false;
+            bTaskFound = true;
+            break;
+        }
+    }
+
+    if (i == g_ui32NumOfTasks)
+    {
+        bTaskFound = false;
+    }
+
+    return bTaskFound;
 }
 
 uint32_t TTScheduler_getTicks(void)
 {
-    return g_ui32Ticks;
+    return g_ui32TicksInMillis;
 }
 
 uint32_t TTScheduler_getTickPeriod(void)
 {
-    return g_ui32TickPeriod;
+    return g_ui32TickPeriodInMillis;
 }
 
 uint32_t TTScheduler_getCyclePeriod(void)
 {
-    return g_ui32CyclePeriod;
+    return g_ui32CyclePeriodInMillis;
 }
 
