@@ -16,7 +16,7 @@ typedef struct Task
     bool bEnabled;
 } Task_t;
 
-void TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
+bool TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks);
 
 void TTScheduler_start(void);
 

@@ -32,7 +32,11 @@ void System_init(void);
 void LED_init(void);
 void UARTstdio_init(void);
 
-Task_t g_atTask[NO_OF_TASKS] = { { 1, 1000, Task_fun1 }, { 2, 50, Task_fun2 } };
+Task_t g_atTask[NO_OF_TASKS] =
+{
+  { TASK1_ID, 1000, Task_fun1 },
+  { TASK2_ID, 50, Task_fun2 }
+};
 
 int main(void)
 {
@@ -40,8 +44,15 @@ int main(void)
     LED_init();
     UARTstdio_init();
 
-    TTScheduler_init(g_atTask, NO_OF_TASKS);
-    TTScheduler_start();
+    if (TTScheduler_init(g_atTask, NO_OF_TASKS) == true)
+    {
+        TTScheduler_start();
+    }
+    else
+    {
+        UARTprintf(
+                "\n\n <<ERROR>> Scheduler is not initialized properly. \n\n");
+    }
 }
 
 void Task_fun1(void)

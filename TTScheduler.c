@@ -19,7 +19,7 @@ static uint32_t g_ui32TicksInMillis = 0;
 static uint32_t g_ui32TickPeriodInMillis = 0;
 static uint32_t g_ui32CyclePeriodInMillis = 0;
 
-static void Tick_ISR(void)
+static void _TimerTickCallBack(void)
 {
     uint32_t i;
 
@@ -28,9 +28,12 @@ static void Tick_ISR(void)
     for (i = 0; i < g_ui32NumOfTasks; i++)
     {
         if (((g_ui32TicksInMillis % g_ptTaskArray[i].ui32PeriodInMillis) == 0)
-                && g_ptTaskArray[i].bEnabled == 1)
+                && (g_ptTaskArray[i].bEnabled == 1))
         {
-            g_ptTaskArray[i].pfnTaskFun();
+            if (g_ptTaskArray[i].pfnTaskFun != NULL)
+            {
+                g_ptTaskArray[i].pfnTaskFun();
+            }
         }
     }
 
@@ -40,12 +43,17 @@ static void Tick_ISR(void)
     }
 }
 
-void TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
+bool TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
 {
     uint32_t i, j, ui32Max = 0, ui32Min = UINT32_MAX;
 
     g_ui32NumOfTasks = ui32NumOfTasks;
     g_ptTaskArray = ptTaskArray;
+
+    if (g_ptTaskArray == NULL)
+    {
+        return false;
+    }
 
     for (i = 0; i < g_ui32NumOfTasks; i++)
     {
@@ -58,6 +66,14 @@ void TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
         if (g_ptTaskArray[i].ui32PeriodInMillis > ui32Max)
         {
             ui32Max = g_ptTaskArray[i].ui32PeriodInMillis;
+        }
+
+        for (j = i + 1; j < g_ui32NumOfTasks; j++)
+        {
+            if (g_ptTaskArray[i].ui32ID == g_ptTaskArray[j].ui32ID)
+            {
+                return false;
+            }
         }
     }
 
@@ -93,7 +109,9 @@ void TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
         }
     }
 
-    TimerTick_init(g_ui32TickPeriodInMillis, Tick_ISR);
+    TimerTick_init(g_ui32TickPeriodInMillis, _TimerTickCallBack);
+
+    return true;
 }
 
 void TTScheduler_start(void)
