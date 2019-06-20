@@ -20,7 +20,7 @@ static uint32_t g_ui32TicksInMillis;
 static uint32_t g_ui32TickPeriodInMillis;
 static uint32_t g_ui32CyclePeriodInMillis;
 
-static void _TickTimerCallBAck(void)
+static void _TickTimerCallBack(void)
 {
     uint32_t i;
 
@@ -131,7 +131,7 @@ bool TTScheduler_init(Task_t *ptTaskArray, uint32_t ui32NumOfTasks)
     }
 
     HardExecTimer_init();
-    TickTimer_init(g_ui32TickPeriodInMillis, _TickTimerCallBAck);
+    TickTimer_init(g_ui32TickPeriodInMillis, _TickTimerCallBack);
 
     g_bIsValidToRun = true;
     return g_bIsValidToRun;
